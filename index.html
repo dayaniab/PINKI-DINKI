@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PINKI DINKIS</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <style>
+    /* Degradado de toda la pag principal*/
+    body {
+      margin: 0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(135deg, #f8ff79, #fcafdf,#f6bd7c);
+      overflow-x: hidden;
+    }
+
+    header, .hero {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .logo {
+      font-size: 3rem;
+      color: #ff69b4;
+      text-shadow: 1px 1px #fff;
+    }
+
+    .hero h2 {
+      font-size: 1.8rem;
+      margin: 20px 0;
+      color: #d63384;
+    }
+
+    .btn-ver-productos {
+      background: #ff69b4;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 25px;
+      text-decoration: none;
+      font-size: 1.1rem;
+      box-shadow: 0 0 10px #86d9ff;
+      transition: 0.3s;
+    }
+
+    .btn-ver-productos:hover {
+      background: #ff85c1;
+      box-shadow: 0 0 15px #69cdff;
+    }
+  /* WHATSAAP */
+    .whatsapp-float {
+      position: fixed;
+      bottom: 80px;
+      right: 80px;
+      z-index: 9999;
+    }
+  /* Tamaño del icono whatsaap*/
+    .whatsapp-float img {
+      width: 80px;
+    }
+  /* Boton administrador*/
+    .boton-admin {
+  position: fixed;
+  top: 10px;          /* Distancia desde la parte superior */
+  right: 25px;        /* Distancia desde el borde derecho */
+  background-color: #ff69b4;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-weight: bold;
+  box-shadow: 0 0 10px #ffb6c1;
+  z-index: 9999;      /* Muy alto para que esté siempre visible encima */
+}
+
+/* Diseño formulario admin*/
+    #form-admin {
+      display: none;
+      position: fixed;
+      top: 80px;
+      right: 140px;
+      background-color: rgb(249, 236, 189);
+      border: 4px solid #ff69b4;
+      padding: 15px;
+      border-radius: 12px;
+      z-index: 9999;
+    }
+
+    /* Modal de Inicio de Sesión */
+    .modal-login {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+      background: linear-gradient(135deg, #ffe6f0 0%, #fff0f5 50%, #ffeef2 100%);
+      margin: 5% auto;
+      padding: 30px;
+      border: 3px solid #ff69b4;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(255, 105, 180, 0.3);
+      position: relative;
+      animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .close-modal {
+      position: absolute;
+      right: 15px;
+      top: 10px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #ff69b4;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+
+    .close-modal:hover {
+      color: #d63384;
+    }
+
+    .modal-content h2 {
+      text-align: center;
+      color: #ff69b4;
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+
+    .modal-content p {
+      text-align: center;
+      color: #666;
+      margin-bottom: 25px;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #d63384;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ffb6c1;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #ff69b4;
+      box-shadow: 0 0 10px rgba(255, 105, 180, 0.3);
+    }
+
+    .btn-login {
+      width: 100%;
+      background: linear-gradient(45deg, #ff69b4, #ff85c1);
+      color: white;
+      padding: 15px;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+      margin-top: 10px;
+    }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+    }
+
+    #mensaje-login {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: bold;
+      display: none;
+    }
+
+    .mensaje-exito {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .mensaje-error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .redes-sociales {
+      text-align: center;
+      padding: 30px 0;
+      background: linear-gradient(90deg, #da1d7f, #fceaff);
+      box-shadow: inset 0 0 10px rgba(15, 168, 224, 0.86);
+    }
+
+    .redes-sociales .icono img {
+      width: 40px;
+      margin: 0 15px;
+      transition: transform 0.3s;
+    }
+
+    .redes-sociales .icono img:hover {
+      transform: scale(1.2);
+    }
+  </style>
+</head>
+<body>
+<!-- Menú desplegable -->
+<nav class="menu-desplegable">
+  <div class="menu-icono" onclick="toggleMenu()">☰</div>
+  <ul class="menu-opciones" id="menu-opciones">
+    <li><a href="#iniciarSesion">🔐 Iniciar sesión</a></li>
+    <li><a href="productos.html">🔍 Ver productos</a></li>
+    <li><a href="galeria.html">🖼️ Ver imágenes</a></li>
+    <li><a href="#redes-sociales">📱 Redes sociales</a></li>
+  </ul>
+</nav>
+  <!-- Botón de Admin -->
+  <a href="#" class="boton-admin" id="btn-admin">🎀 Administrador 🎀</a>
+  <!-- Modal de Login Admin -->
+  <div id="modal-admin-login" class="modal-login">
+    <div class="modal-content" style="background:linear-gradient(135deg,#ffb6c1 0%,#fff0f5 100%);">
+      <span class="close-modal" id="close-admin-modal">&times;</span>
+      <h2 style="text-align:center;background:linear-gradient(45deg,#ff69b4,#ff85c1,#ffb6c1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:2rem;margin-bottom:25px;">Acceso Administrador</h2>
+      <form id="admin-login-form">
+        <div class="form-group">
+          <label for="admin-usuario">Usuario</label>
+          <input type="text" id="admin-usuario" placeholder="Usuario" required />
+        </div>
+        <div class="form-group">
+          <label for="admin-password">Contraseña</label>
+          <input type="password" id="admin-password" placeholder="Contraseña" required />
+        </div>
+        <div style="text-align:right;margin-bottom:18px;">
+          <a href="#" id="forgot-link-admin" style="color:#ff69b4;text-decoration:underline;font-size:14px;">Olvidé mi contraseña</a>
+        </div>
+        <button type="submit" class="btn-login">Ingresar</button>
+        <div id="login-error-admin" style="color:#e74c3c;text-align:center;margin-top:15px;display:none;font-weight:bold;"></div>
+      </form>
+      <!-- Modal para restablecer contraseña -->
+      <div id="reset-modal-admin" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,182,193,0.25);backdrop-filter:blur(2px);align-items:center;justify-content:center;z-index:10000;">
+        <form id="reset-form-admin" style="background:linear-gradient(135deg,#fff0f5 0%,#ffe6f0 100%);padding:32px 24px 24px 24px;border-radius:25px;box-shadow:0 8px 32px rgba(255,105,180,0.18);max-width:340px;width:100%;position:relative;">
+          <h3 style="text-align:center;background:linear-gradient(45deg,#ff69b4,#ff85c1,#ffb6c1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.3rem;margin-bottom:18px;">Restablecer contraseña</h3>
+          <label style="font-weight:bold;color:#d63384;">Elige un método:</label>
+          <div style="margin:10px 0 18px 0;">
+            <input type="radio" name="reset-method-admin" id="reset-email-admin" value="email" checked>
+            <label for="reset-email-admin" style="margin-right:18px;">Correo electrónico</label>
+            <input type="radio" name="reset-method-admin" id="reset-phone-admin" value="phone">
+            <label for="reset-phone-admin">Teléfono</label>
+          </div>
+          <input type="email" id="reset-email-input-admin" placeholder="Correo electrónico" style="width:100%;padding:12px;margin-bottom:12px;border-radius:12px;border:2px solid #ffb6c1;font-size:16px;">
+          <input type="tel" id="reset-phone-input-admin" placeholder="Número telefónico" style="width:100%;padding:12px;margin-bottom:12px;border-radius:12px;border:2px solid #ffb6c1;font-size:16px;display:none;">
+          <button type="submit" class="btn-login">Restablecer</button>
+          <div id="reset-success-admin" style="color:#28a745;text-align:center;margin-top:12px;display:none;font-weight:bold;"></div>
+          <div id="reset-error-admin" style="color:#e74c3c;text-align:center;margin-top:12px;display:none;font-weight:bold;"></div>
+          <button type="button" id="close-reset-admin" style="position:absolute;top:10px;right:18px;background:none;border:none;font-size:22px;color:#ff69b4;cursor:pointer;">&times;</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Inicio de Sesión Principal -->
+  <div id="modal-login" class="modal-login">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2>🔐 Iniciar Sesión</h2>
+      <p>Ingresa con tu nombre completo y número telefónico que registraste en tu evento</p>
+      <form id="form-login">
+        <div class="form-group">
+          <label for="nombre-completo">Nombre Completo</label>
+          <input type="text" id="nombre-completo" placeholder="Ingresa tu nombre completo" required />
+        </div>
+        <div class="form-group">
+          <label for="telefono">Número Telefónico</label>
+          <input type="tel" id="telefono" placeholder="Ingresa tu número telefónico" required />
+        </div>
+        <button type="submit" class="btn-login">Iniciar Sesión</button>
+        <div id="mensaje-login"></div>
+      </form>
+    </div>
+  </div>
+  <!-- Panel de administración en la principal -->
+  <div id="admin-panel-main" style="display:none;margin:40px auto 60px auto;max-width:900px;">
+    <div class="admin-section">
+      <h2>Panel de Administración</h2>
+      <p style="text-align:center;color:#d63384;font-weight:bold;">¡Bienvenido, administrador!</p>
+      <!-- Aquí puedes poner las herramientas de gestión que desees mostrar en la principal -->
+      <div style="margin:30px 0;text-align:center;">
+        <strong>Gestión rápida:</strong>
+        <ul style="list-style:none;padding:0;">
+          <li><a href="productos.html" class="btn-ver-productos">Ver productos</a></li>
+          <li><a href="Precios.html" class="btn-ver-productos">Ver precios</a></li>
+          <li><a href="calendario.html" class="btn-ver-productos">Ver calendario</a></li>
+          <li><a href="#" onclick="location.reload()" class="btn-ver-productos">Cerrar sesión</a></li>
+        </ul>
+      </div>
+      <!-- Puedes agregar más herramientas aquí -->
+    </div>
+  </div>
+  <!-- WhatsApp -->
+  <a href="https://wa.me/525633313462" target="_blank" class="whatsapp-float" title="¡Chatea con nosotros!">
+    <img src="https://cdn-icons-png.flaticon.com/512/220/220236.png" alt="WhatsApp" />
+  </a>
+  <!-- Chatbot -->
+  <div id="chatbot-avatar">
+    <div id="chat-toggle">🤖</div>
+    <div id="chat-window">
+      <div id="chat-header">PinkiBot <span id="chat-close">✖️</span></div>
+      <div id="chat-messages"></div>
+      <input type="text" id="chat-input" placeholder="Escribe tu pregunta..." />
+      <button id="chat-send">Enviar</button>
+    </div>
+  </div>
+  <!-- Encabezado -->
+  <header>
+    <h1 class="logo">✨PINKI DINKIS✨</h1>
+  </header>
+</div>
+  <!-- Sección principal -->
+<section class="hero">
+  <div class="hero-contenido">
+
+    <!-- Imagen del lado izquierdo -->
+    <img src="https://i.imgur.com/wqQ6Qtz.png" alt="Muñequito decorativo" class="img-munequito">
+
+    <div class="hero-texto">
+      <h2>🎉 Eventos Infantiles Inolvidables 🎉</h2>
+      <p>🎪 ¡Bienvenidos al mundo mágico de PINKI DINKIS! 🎉<br>
+        Somos una agencia de animación llena de alegría, ternura y diversión,<br>
+        ¡especialistas en crear momentos inolvidables para chicos y grandes!<br>
+        En PINKI DINKIS, combinamos el color, los juegos, la música y el corazón 
+        para transformar cada evento en una experiencia mágica.
+      </p>
+    </div>
+
+    <div class="hero-imagenes">
+      <img src="https://i.imgur.com/FHnclCJ.png" alt="Imagen grande" class="img-grande">
+      <img src="https://i.imgur.com/Cm6lCNz.png" alt="Imagen chica" class="img-chica">
+    </div>
+  </div>
+</section>
+
+ <!-- Imagen bely -->
+<div class="muñequito-scroll">
+  <img src="https://i.imgur.com/j75yewh.png" alt="Muñequito decorativo">
+</div>
+<!-- imagen spiderman -->
+<div class="muñequito-izquierdo">
+  <img src="https://i.imgur.com/3yVsFSO.png" alt="Muñequito decorativo">
+</div>
+
+  <div class="secciones-verticales">
+  <div class="tarjeta-seccion">
+    <h3>🎁 Todos Nuestros Servicios</h3>
+    <p>Explora todos nuestros paquetes para fiestas infantiles.</p>
+    <a href="productos.html" class="btn-seccion">Ver Productos</a>
+  </div>
+<!-- Seccion imagenes y videos -->
+  <div class="tarjeta-seccion">
+    <h3>📸 Imágenes y videos</h3>
+    <p>¡Descubre algunos momentos mágicos que hemos creado!</p>
+    <a href="galeria.html" class="btn-seccion">Ver Imágenes</a>
+  </div>
+<!-- Seccion Ubicacion -->
+  <div class="tarjeta-seccion">
+    <h3>📍 Nuestra ubicación</h3>
+    <p>Ven a visitarnos o agenda desde donde estés.</p>
+    <iframe 
+    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3763.478841358647!2d-98.9310593244432!3d19.391706081878997!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1e22bc178b195%3A0x1a191db757b98b41!2sGacela%20Azteca%20%26%20Cerrada%20Nogales!5e0!3m2!1ses-419!2smx!4v1749874433032!5m2!1ses-419!2smx" allowfullscreen="" loading="lazy"
+      width="100%" 
+      height="250" 
+      style="border:0; border-radius: 15px;" 
+      allowfullscreen="" 
+      loading="lazy">
+    </iframe>
+  </div>
+</div>
+  <!-- Redes Sociales -->
+  <section class="seccion contacto">
+    <h2>📞 Tambien puedes encontrarnos en </h2>
+    <div class="redes-container">
+      <a href="https://www.facebook.com/share/1AbULMEwbD/" target="_blank" class="icono"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png"></a>
+      <a href="https://www.instagram.com/pinkis_dinkis_8?igsh=cTZnMDhsbmV1YnJj" target="_blank" class="icono"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png"></a>
+      <a href="https://wa.me/525633313462" target="_blank" class="icono"><img src="https://cdn-icons-png.flaticon.com/512/220/220236.png"></a>
+      <a href="https://www.tiktok.com/@charly_m0324?_t=ZS-8xWM41QIJWC&_r=1" target="_blank" class="icono"><img src="https://cdn-icons-png.flaticon.com/512/3046/3046122.png"></a>
+    </div>
+  </section>
+  <!-- Derechos -->
+  <footer><p>&copy; 2025 PINKI DINKIS - Todos los derechos reservados</p></footer>
+  <!-- JS -->
+  <script>
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyD6NB2f4icoKBA7VV8KEd-oJLdV7EjdMzA",
+      authDomain: "pinki-dinkis.firebaseapp.com",
+      projectId: "pinki-dinkis",
+      storageBucket: "pinki-dinkis.appspot.com",
+      messagingSenderId: "761142113629",
+      appId: "1:761142113629:web:4b830798bd55d1fef6e4b4",
+      measurementId: "G-KEMSRF6K52",
+      databaseURL: "https://pinki-dinkis-default-rtdb.firebaseio.com"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Variables del modal de login
+    const modalLogin = document.getElementById('modal-login');
+    const closeModal = document.querySelector('.close-modal');
+    const formLogin = document.getElementById('form-login');
+    const mensajeLogin = document.getElementById('mensaje-login');
+
+    // Abrir modal de login cuando se hace clic en "Iniciar sesión"
+    document.querySelector('a[href="#iniciarSesion"]').addEventListener('click', function(e) {
+      e.preventDefault();
+      modalLogin.style.display = 'block';
+    });
+
+    // Verificar si hay hash en la URL para abrir modal automáticamente
+    if (window.location.hash === '#iniciarSesion') {
+      modalLogin.style.display = 'block';
+    }
+
+    // Cerrar modal
+    closeModal.addEventListener('click', function() {
+      modalLogin.style.display = 'none';
+      limpiarFormulario();
+    });
+
+    // Cerrar modal al hacer clic fuera de él
+    window.addEventListener('click', function(e) {
+      if (e.target === modalLogin) {
+        modalLogin.style.display = 'none';
+        limpiarFormulario();
+      }
+    });
+
+    // Función para limpiar el formulario
+    function limpiarFormulario() {
+      formLogin.reset();
+      mensajeLogin.style.display = 'none';
+      mensajeLogin.className = '';
+    }
+
+    // Función para mostrar mensajes
+    function mostrarMensaje(texto, tipo) {
+      mensajeLogin.textContent = texto;
+      mensajeLogin.className = tipo === 'exito' ? 'mensaje-exito' : 'mensaje-error';
+      mensajeLogin.style.display = 'block';
+    }
+
+    // Manejar envío del formulario de login
+    formLogin.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const nombreCompleto = document.getElementById('nombre-completo').value.trim();
+      const telefono = document.getElementById('telefono').value.trim();
+      
+      if (!nombreCompleto || !telefono) {
+        mostrarMensaje('Por favor, completa todos los campos.', 'error');
+        return;
+      }
+
+      // Buscar usuario en la base de datos
+      verificarUsuario(nombreCompleto, telefono);
+    });
+
+    // Función para verificar si el usuario existe
+    function verificarUsuario(nombreCompleto, telefono) {
+      db.ref('eventosAgendados').once('value')
+        .then(snapshot => {
+          let usuarioEncontrado = false;
+          let datosUsuario = null;
+
+          snapshot.forEach(child => {
+            const evento = child.val();
+            
+            // Normalizar nombres para comparación (sin acentos, minúsculas)
+            const nombreEvento = evento.persona ? evento.persona.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
+            const nombreIngresado = nombreCompleto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            
+            // Normalizar teléfonos (solo números)
+            const telefonoEvento = evento.telefono1 ? evento.telefono1.replace(/\D/g, '') : '';
+            const telefonoIngresado = telefono.replace(/\D/g, '');
+            
+            if (nombreEvento === nombreIngresado && telefonoEvento === telefonoIngresado) {
+              usuarioEncontrado = true;
+              datosUsuario = {
+                id: child.key,
+                ...evento
+              };
+            }
+          });
+
+          if (usuarioEncontrado) {
+            mostrarMensaje('¡Bienvenido! Has iniciado sesión correctamente. 🎉', 'exito');
+            // Aquí puedes redirigir al usuario a su panel personal o mostrar sus eventos
+            setTimeout(() => {
+              mostrarPanelUsuario(datosUsuario);
+            }, 2000);
+          } else {
+            mostrarMensaje('No se encontró un evento registrado con ese nombre y teléfono. Por favor, verifica tus datos o agenda un evento primero.', 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error al verificar usuario:', error);
+          mostrarMensaje('Error al conectar con la base de datos. Por favor, intenta nuevamente.', 'error');
+        });
+    }
+
+    // Función para mostrar el panel del usuario (puedes personalizar esto)
+    function mostrarPanelUsuario(datosUsuario) {
+      modalLogin.style.display = 'none';
+      
+      // Crear una ventana emergente con los datos del usuario
+      const panelUsuario = document.createElement('div');
+      panelUsuario.className = 'modal-login';
+      panelUsuario.style.display = 'block';
+      
+      panelUsuario.innerHTML = `
+        <div class="modal-content">
+          <span class="close-modal" onclick="this.parentElement.parentElement.remove()">&times;</span>
+          <h2>🎉 ¡Bienvenido ${datosUsuario.persona}!</h2>
+          <div style="text-align: left; margin: 20px 0;">
+            <h3>📋 Detalles de tu evento:</h3>
+            <p><strong>Fecha:</strong> ${datosUsuario.fecha || 'No especificada'}</p>
+            <p><strong>Hora:</strong> ${datosUsuario.hora || 'No especificada'}</p>
+            <p><strong>Tipo de servicio:</strong> ${datosUsuario.tipo || 'No especificado'}</p>
+            <p><strong>Temática:</strong> ${datosUsuario.tematica || 'No especificada'}</p>
+            <p><strong>Festejado(s):</strong> ${datosUsuario.festejados || 'No especificado'}</p>
+            <p><strong>Dirección:</strong> ${datosUsuario.direccion || 'No especificada'}</p>
+            ${datosUsuario.especificaciones ? `<p><strong>Especificaciones:</strong> ${datosUsuario.especificaciones}</p>` : ''}
+          </div>
+          <button onclick="this.parentElement.parentElement.remove()" class="btn-login">Cerrar</button>
+        </div>
+      `;
+      
+      document.body.appendChild(panelUsuario);
+    }
+
+    var btnAdmin = document.getElementById('btn-admin');
+    const formAdmin = document.getElementById('form-admin');
+    btnAdmin.addEventListener('click', () => {
+      formAdmin.style.display = formAdmin.style.display === 'none' ? 'block' : 'none';
+    });
+
+    function verificarAdmin() {
+      const usuario = document.getElementById('usuario').value;
+      const contrasena = document.getElementById('contrasena').value;
+      if (usuario === 'day' && contrasena === 'pinkis') {
+        window.location.href = 'admin.html';
+      } else {
+        alert('Usuario o contraseña incorrectos.');
+      }
+    }
+    // Chatbot
+    const toggle = document.getElementById('chat-toggle');
+    const chatWindow = document.getElementById('chat-window');
+    const closeBtn = document.getElementById('chat-close');
+    const chatSend = document.getElementById('chat-send');
+    const chatInput = document.getElementById('chat-input');
+    const chatMessages = document.getElementById('chat-messages');
+
+    toggle.addEventListener('click', () => {
+      chatWindow.style.display = 'flex';
+    });
+
+    closeBtn.addEventListener('click', () => {
+      chatWindow.style.display = 'none';
+    });
+
+    chatSend.addEventListener('click', enviarMensaje);
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') enviarMensaje();
+    });
+
+    function enviarMensaje() {
+      const mensaje = chatInput.value.trim();
+      if (!mensaje) return;
+      agregarMensaje('Tú', mensaje);
+      chatInput.value = '';
+      responderBot(mensaje.toLowerCase());
+    }
+
+    function agregarMensaje(remitente, texto) {
+      const div = document.createElement('div');
+      div.className = `mensaje ${remitente === 'Tú' ? 'usuario' : 'bot'}`;
+      div.innerText = texto;
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function responderBot(pregunta) {
+      let respuesta = "Lo siento, no entendí eso. 🤖";
+
+      if (pregunta.includes('precio')) respuesta = "Puedes consultar precios haciendo clic en 'Ver productos'.";
+      else if (pregunta.includes('agendar')) respuesta = "Selecciona un producto y llena el formulario para agendar.";
+      else if (pregunta.includes('hola')) respuesta = "¡Hola! Soy PinkiBot, ¿cómo te puedo ayudar?";
+      else if (pregunta.includes('ubicación')) respuesta = "Estamos en San Vicente Chicoloapan, Estado de México.";
+      else if (pregunta.includes('whatsapp')) respuesta = "¡Claro! Escríbenos directamente al 5633313462 📱";
+      else if (pregunta.includes('gracias')) respuesta = "Un placer ayudarte 🎀";
+
+      setTimeout(() => agregarMensaje('PinkiBot', respuesta), 500);
+    }
+  </script>
+
+  <script src="app.js"></script>
+  
+  <script>
+  function toggleMenu() {
+    const menu = document.getElementById('menu-opciones');
+    menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+  }
+</script>
+<!-- Al fondo de tu página -->
+<footer id="redes-sociales">
+  <!-- Tus íconos de Instagram, WhatsApp, etc. -->
+</footer>
+
+<script>
+// --- ADMIN LOGIN MODAL LOGIC ---
+var btnAdmin = document.getElementById('btn-admin');
+const modalAdmin = document.getElementById('modal-admin-login');
+const closeAdminModal = document.getElementById('close-admin-modal');
+const adminLoginForm = document.getElementById('admin-login-form');
+const loginErrorAdmin = document.getElementById('login-error-admin');
+const adminPanelMain = document.getElementById('admin-panel-main');
+const forgotLinkAdmin = document.getElementById('forgot-link-admin');
+const resetModalAdmin = document.getElementById('reset-modal-admin');
+const resetFormAdmin = document.getElementById('reset-form-admin');
+const resetEmailInputAdmin = document.getElementById('reset-email-input-admin');
+const resetPhoneInputAdmin = document.getElementById('reset-phone-input-admin');
+const resetSuccessAdmin = document.getElementById('reset-success-admin');
+const resetErrorAdmin = document.getElementById('reset-error-admin');
+const closeResetAdmin = document.getElementById('close-reset-admin');
+
+// Abrir modal admin
+btnAdmin.addEventListener('click', function(e) {
+  e.preventDefault();
+  modalAdmin.style.display = 'block';
+});
+// Cerrar modal admin
+closeAdminModal.addEventListener('click', function() {
+  modalAdmin.style.display = 'none';
+  adminLoginForm.reset();
+  loginErrorAdmin.style.display = 'none';
+});
+window.addEventListener('click', function(e) {
+  if (e.target === modalAdmin) {
+    modalAdmin.style.display = 'none';
+    adminLoginForm.reset();
+    loginErrorAdmin.style.display = 'none';
+  }
+});
+// Login admin
+adminLoginForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  loginErrorAdmin.style.display = 'none';
+  const user = document.getElementById('admin-usuario').value.trim();
+  const pass = document.getElementById('admin-password').value.trim();
+  if (user === 'day' && pass === 'pinkis') {
+    modalAdmin.style.display = 'none';
+    // Redirigir a la página de administrador
+    window.location.href = 'admin.html';
+  } else {
+    loginErrorAdmin.textContent = 'Usuario o contraseña incorrectos';
+    loginErrorAdmin.style.display = 'block';
+  }
+});
+// Olvidé mi contraseña
+forgotLinkAdmin.addEventListener('click', function(e) {
+  e.preventDefault();
+  resetModalAdmin.style.display = 'flex';
+  resetSuccessAdmin.style.display = 'none';
+  resetErrorAdmin.style.display = 'none';
+  resetEmailInputAdmin.value = '';
+  resetPhoneInputAdmin.value = '';
+  resetEmailInputAdmin.style.display = '';
+  resetPhoneInputAdmin.style.display = 'none';
+  resetFormAdmin.reset();
+});
+// Cerrar modal de reset
+closeResetAdmin.addEventListener('click', function() {
+  resetModalAdmin.style.display = 'none';
+});
+// Cambiar método de recuperación
+resetFormAdmin.addEventListener('change', function(e) {
+  if (e.target.name === 'reset-method-admin') {
+    if (e.target.value === 'email') {
+      resetEmailInputAdmin.style.display = '';
+      resetPhoneInputAdmin.style.display = 'none';
+    } else {
+      resetEmailInputAdmin.style.display = 'none';
+      resetPhoneInputAdmin.style.display = '';
+    }
+    resetSuccessAdmin.style.display = 'none';
+    resetErrorAdmin.style.display = 'none';
+  }
+});
+// Enviar recuperación
+resetFormAdmin.addEventListener('submit', function(e) {
+  e.preventDefault();
+  resetSuccessAdmin.style.display = 'none';
+  resetErrorAdmin.style.display = 'none';
+  const method = resetFormAdmin.querySelector('input[name="reset-method-admin"]:checked').value;
+  if (method === 'email') {
+    const email = resetEmailInputAdmin.value.trim();
+    if (!email.match(/^\S+@\S+\.\S+$/)) {
+      resetErrorAdmin.textContent = 'Ingresa un correo válido.';
+      resetErrorAdmin.style.display = 'block';
+      return;
+    }
+    // Simulación de envío de correo
+    setTimeout(() => {
+      resetSuccessAdmin.textContent = 'Se ha enviado un enlace de restablecimiento a tu correo electrónico. Revisa tu bandeja de entrada.';
+      resetSuccessAdmin.style.display = 'block';
+    }, 800);
+  } else {
+    const phone = resetPhoneInputAdmin.value.trim();
+    if (!phone.match(/^\d{10}$/)) {
+      resetErrorAdmin.textContent = 'Ingresa un número de 10 dígitos.';
+      resetErrorAdmin.style.display = 'block';
+      return;
+    }
+    // Simulación de envío por teléfono
+    setTimeout(() => {
+      resetSuccessAdmin.textContent = 'Se ha enviado un código de restablecimiento a tu número telefónico por WhatsApp o SMS.';
+      resetSuccessAdmin.style.display = 'block';
+    }, 800);
+  }
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Ejemplo: mostrar loader en panel admin si es visible
+  const adminPanel = document.getElementById('admin-panel-main');
+  if (adminPanel && adminPanel.style.display !== 'none') {
+    adminPanel.innerHTML += '<div id="loader-admin" style="text-align:center;margin:20px;">Cargando...</div>';
+    setTimeout(() => {
+      const loader = document.getElementById('loader-admin');
+      if (loader) loader.remove();
+    }, 800); // Simula carga rápida
+  }
+  // Puedes agregar loaders similares en otras secciones dinámicas
+});
+</script>
+
+</body>
+</html>

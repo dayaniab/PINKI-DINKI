@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galería - Pinki Dinkis</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(135deg, #f8ff79, #fcafdf, #f6bd7c);
+      min-height: 100vh;
+    }
+
+    .main-header {
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(45deg, #f9a1c4, #fcd2e3);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    .main-header h1 {
+      font-size: 36px;
+      color: #ff69b4;
+      text-shadow: 2px 2px 5px rgba(255, 105, 180, 0.3);
+      margin: 0;
+    }
+
+    .main-header p {
+      font-size: 18px;
+      color: #555;
+      margin-top: 10px;
+    }
+
+    .boton-regresar {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: linear-gradient(45deg, #ff69b4, #ff85c1);
+      color: white;
+      padding: 0;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(105, 235, 255, 0.903);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+      width: 3cm;
+      height: 1.5cm;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .boton-regresar:hover {
+      transform: scale(1.05);
+    }
+
+    .banner-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 30px;
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .banner {
+      background-color: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(114, 231, 252, 0.934);
+      position: relative;
+      transition: transform 0.5s ease, box-shadow 0.3s ease;
+      text-decoration: none;
+    }
+
+    .banner:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 35px rgba(138, 212, 248, 0.905);
+    }
+
+    .slider {
+      position: relative;
+      overflow: hidden;
+      height: 300px;
+    }
+
+    .slides {
+      display: flex;
+      transition: transform 0.5s ease-in-out;
+      height: 100%;
+    }
+
+    .slides img {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      display: block;
+      flex-shrink: 0;
+    }
+
+    .prev, .next {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: rgba(255,255,255,0.3);
+      border: none;
+      font-size: 16px;
+      padding: 8px 6px;
+      cursor: pointer;
+      border-radius: 15px;
+      color: #ff69b4;
+      box-shadow: 0 2px 4px rgba(19, 201, 229, 0.93);
+      transition: all 0.3s;
+      z-index: 2;
+      opacity: 0.7;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .prev:hover, .next:hover {
+      background-color: rgba(255,105,180,0.8);
+      color: white;
+      transform: translateY(-50%) scale(1.05);
+      opacity: 1;
+    }
+
+    .prev { left: 5px; }
+    .next { right: 5px; }
+
+    .banner-content {
+      padding: 25px;
+      text-align: center;
+      background: linear-gradient(135deg, #ffdde1, #ffc2d1);
+    }
+
+    .banner-content h2 {
+      font-size: 24px;
+      margin: 0;
+      color: #d63384;
+      text-shadow: 1px 1px white;
+    }
+
+    .banner-content h2 span {
+      color: #9d4edd;
+      font-weight: bold;
+    }
+
+    .banner-content p {
+      margin: 10px 0 0 0;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .whatsapp-float {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+
+    .whatsapp-float img {
+      width: 60px;
+      transition: transform 0.3s ease;
+    }
+
+    .whatsapp-float:hover img {
+      transform: scale(1.1);
+    }
+
+    .indicadores {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .indicador {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: #ffb6c1;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .indicador.activo {
+      background-color: #ff69b4;
+    }
+
+    @media (max-width: 768px) {
+      .banner-grid {
+        grid-template-columns: 1fr;
+        padding: 20px 15px;
+      }
+      
+      .slider {
+        height: 200px;
+      }
+      
+      .slides img {
+        height: 200px;
+      }
+      
+      .main-header h1 {
+        font-size: 24px;
+      }
+      
+      .main-header p {
+        font-size: 14px;
+      }
+      
+      .boton-regresar {
+        top: 10px;
+        left: 10px;
+        width: 3cm;
+        height: 1.5cm;
+        font-size: 12px;
+      }
+      
+      .banner-content {
+        padding: 15px;
+      }
+      
+      .banner-content h2 {
+        font-size: 18px;
+      }
+      
+      .banner-content p {
+        font-size: 13px;
+      }
+      
+      .prev, .next {
+        width: 25px;
+        height: 25px;
+        font-size: 14px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .main-header h1 {
+        font-size: 20px;
+      }
+      
+      .main-header p {
+        font-size: 12px;
+      }
+      
+      .banner-content h2 {
+        font-size: 16px;
+      }
+      
+      .banner-content p {
+        font-size: 12px;
+      }
+      
+      .slider {
+        height: 180px;
+      }
+      
+      .slides img {
+        height: 180px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Botón regresar -->
+  <button class="boton-regresar" onclick="window.location.href='index.html'">Regresar</button>
+
+  <header class="main-header">
+    <h1>✨ GALERÍA DE PINKI DINKIS ✨</h1>
+    <p>🎉 Descubre algunos momentos mágicos que hemos creado</p>
+  </header>
+
+  <section class="banner-grid" id="galeria-publica">
+    <!-- Las categorías y sliders se generarán dinámicamente con JS -->
+  </section>
+
+  <!-- WhatsApp -->
+  <a href="https://wa.me/525633313462" target="_blank" class="whatsapp-float" title="¡Chatea con nosotros!">
+    <img src="https://cdn-icons-png.flaticon.com/512/220/220236.png" alt="WhatsApp">
+  </a>
+
+  <script>
+    // --- NUEVO: Cargar imágenes desde localStorage o default ---
+    const categoriasGaleria = [
+      { key: 'animadores', nombre: 'ANIMADORES INFANTILES', icono: '🎪', desc: '¡Diversión garantizada para todos los niños!' },
+      { key: 'pintacaritas', nombre: 'PINTA CARITAS', icono: '🎨', desc: 'Transformamos a los niños en sus personajes favoritos' },
+      { key: 'belyybeto', nombre: 'BELY Y BETO', icono: '🎭', desc: 'Bely y Beto los más divertidos de la ciudad' },
+      { key: 'spiderman', nombre: 'SHOW DE SPIDERMAN', icono: '🕷️', desc: '¡Tu héroe favorito en tu fiesta!' },
+      { key: 'personajes', nombre: 'PERSONAJES', icono: '🎭', desc: 'Una gran variedad de personajes para tu evento' }
+    ];
+    const galeriaDefault = {
+      animadores: [
+        'https://i.imgur.com/5pc5QzK.jpeg',
+        'https://i.imgur.com/CTfmji2.jpeg',
+        'https://i.imgur.com/yFosOMa.jpeg',
+        'https://i.imgur.com/I2goapV.jpeg'
+      ],
+      pintacaritas: [
+        'https://i.imgur.com/VFUwbCP.jpeg',
+        'https://i.imgur.com/g0YRYPn.jpeg',
+        'https://i.imgur.com/HLlKDkf.jpeg',
+        'https://i.imgur.com/Cl4a3Iq.jpeg'
+      ],
+      belyybeto: [
+        'https://i.imgur.com/MxyqdNM.jpeg',
+        'https://i.imgur.com/kCx4Bzv.jpeg',
+        'https://i.imgur.com/4mJ9V28.jpeg',
+        'https://i.imgur.com/YYd6I3h.jpeg'
+      ],
+      spiderman: [
+        'https://i.imgur.com/Zrr9ok2.jpeg',
+        'https://i.imgur.com/5pc5QzK.jpeg',
+        'https://i.imgur.com/CTfmji2.jpeg',
+        'https://i.imgur.com/yFosOMa.jpeg'
+      ],
+      personajes: [
+        'https://i.imgur.com/5pc5QzK.jpeg',
+        'https://i.imgur.com/CTfmji2.jpeg',
+        'https://i.imgur.com/yFosOMa.jpeg',
+        'https://i.imgur.com/I2goapV.jpeg'
+      ]
+    };
+    function cargarGaleriaPublica() {
+      const data = localStorage.getItem('galeriaAdmin');
+      return data ? JSON.parse(data) : JSON.parse(JSON.stringify(galeriaDefault));
+    }
+    function renderGaleriaPublica() {
+      const galeria = cargarGaleriaPublica();
+      const grid = document.getElementById('galeria-publica');
+      grid.innerHTML = '';
+      categoriasGaleria.forEach(cat => {
+        const banner = document.createElement('div');
+        banner.className = 'banner';
+        // Slider
+        const slider = document.createElement('div');
+        slider.className = 'slider';
+        const slidesDiv = document.createElement('div');
+        slidesDiv.className = 'slides';
+        (galeria[cat.key] || []).forEach((url, i) => {
+          const img = document.createElement('img');
+          img.src = url;
+          img.alt = `${cat.nombre} ${i+1}`;
+          slidesDiv.appendChild(img);
+        });
+        slider.appendChild(slidesDiv);
+        // Botones y marcadores
+        const prev = document.createElement('button');
+        prev.className = 'prev';
+        prev.innerHTML = '&#10094;';
+        const next = document.createElement('button');
+        next.className = 'next';
+        next.innerHTML = '&#10095;';
+        const indicadores = document.createElement('div');
+        indicadores.className = 'indicadores';
+        slider.appendChild(prev);
+        slider.appendChild(next);
+        slider.appendChild(indicadores);
+        banner.appendChild(slider);
+        // Banner content
+        const content = document.createElement('div');
+        content.className = 'banner-content';
+        content.innerHTML = `<h2>${cat.icono} ${cat.nombre}</h2><p>${cat.desc}</p>`;
+        banner.appendChild(content);
+        grid.appendChild(banner);
+      });
+      // Inicializar sliders
+      setTimeout(inicializarSliders, 100);
+    }
+    function inicializarSliders() {
+      document.querySelectorAll('.banner').forEach(banner => {
+        const slidesContainer = banner.querySelector('.slides');
+        const slides = slidesContainer.querySelectorAll('img');
+        const prevBtn = banner.querySelector('.prev');
+        const nextBtn = banner.querySelector('.next');
+        const indicadoresContainer = banner.querySelector('.indicadores');
+        let index = 0;
+        indicadoresContainer.innerHTML = '';
+        slides.forEach((_, i) => {
+          const indicador = document.createElement('div');
+          indicador.className = 'indicador';
+          if (i === 0) indicador.classList.add('activo');
+          indicador.addEventListener('click', () => showSlide(i));
+          indicadoresContainer.appendChild(indicador);
+        });
+        function showSlide(n) {
+          index = (n + slides.length) % slides.length;
+          slidesContainer.style.transform = `translateX(-${index * 100}%)`;
+          const indicadores = indicadoresContainer.querySelectorAll('.indicador');
+          indicadores.forEach((ind, i) => {
+            ind.classList.toggle('activo', i === index);
+          });
+        }
+        setInterval(() => {
+          showSlide(index + 1);
+        }, 5000);
+        prevBtn.addEventListener('click', () => showSlide(index - 1));
+        nextBtn.addEventListener('click', () => showSlide(index + 1));
+      });
+    }
+    // Renderizar galería al cargar
+    document.addEventListener('DOMContentLoaded', function() {
+      const grid = document.getElementById('galeria-publica');
+      if (grid) {
+        grid.innerHTML = '<div id="loader-galeria" style="text-align:center;margin:30px;font-size:18px;">Cargando galería...</div>';
+      }
+      setTimeout(() => {
+        if (typeof renderGaleriaPublica === 'function') renderGaleriaPublica();
+        const loader = document.getElementById('loader-galeria');
+        if (loader) loader.remove();
+      }, 400); // Simula carga rápida
+    });
+  </script>
+</body>
+</html>

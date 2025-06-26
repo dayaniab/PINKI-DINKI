@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calendario de Eventos</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #e976a4 0%, #cde087 25%, #9df4f4 50%, #d677e2 75%, #fffafc 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+    }
+/*Diseño barra superior*/
+    .header-calendario {
+      text-align: center;
+      padding: 15px 20px;
+      background: linear-gradient(45deg, #f4b4ce 0%, #f3b2fa 25%, #fce888 50%, #fec895 75%, #fd8eba 100%);
+      box-shadow: 0 4px 10px rgb(126, 223, 255);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-calendario::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      /*linea que pasa sobre el contenedor calendario*/
+      background: linear-gradient(90deg, transparent 0%, rgba(100, 207, 249, 0.906) 50%, transparent 100%);
+      animation: shimmer 3s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { transform: translateX(-100%); }
+      50% { transform: translateX(100%); }
+    }
+
+    .header-calendario h2 {
+      font-size: 36px;
+      color: #ff69b4;
+      text-shadow: 2px 2px 5px rgba(237, 9, 123, 0.3);
+      margin: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header-calendario p {
+      font-size: 18px;
+      color: #555;
+      margin: 10px 0 0 0;
+      position: relative;
+      z-index: 1;
+    }
+/*Boton de regresar*/
+    .boton-regresar {
+      display: inline-block;
+      background: linear-gradient(45deg, #ff69b4, #ff85c1);
+      color: white;
+      padding: 12px 24px;
+      margin: 20px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      border-radius: 25px;
+      box-shadow: 0 4px 10px rgba(74, 210, 251, 0.916);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .boton-regresar:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(255, 105, 180, 0.4);
+    }
+/*Diseño y color del calendario*/
+    #calendarioEventos {
+      max-width: 800px;/*Tamaño del calendario*/
+      margin: 30px auto;
+      background: rgb(248, 248, 157);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(90, 224, 254, 0.914);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #calendarioEventos::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, rgba(252, 147, 189, 0.828) 0%, rgba(198, 142, 210, 0.046) 100%);
+      pointer-events: none;
+    }
+
+    /* Estilos personalizados para FullCalendar */
+    .fc {
+      position: relative;
+      z-index: 1;
+    }
+
+    .fc-toolbar-title {
+      color: #ff69b4 !important;
+      font-weight: bold !important;
+      font-size: 24px !important;
+    }
+
+    .fc-button-primary {
+      background: linear-gradient(45deg, #ff69b4, #ff85c1) !important;
+      border: none !important;
+      border-radius: 20px !important;
+      padding: 8px 16px !important;
+      font-weight: bold !important;
+      transition: transform 0.3s ease !important;
+    }
+
+    .fc-button-primary:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 4px 10px rgba(105, 228, 255, 0.922) !important;
+    }
+
+    .fc-daygrid-day {
+      border-radius: 10px !important;
+      margin: 2px !important;
+      transition: background-color 0.3s ease !important;
+    }
+/*Recuadro resoldado en los dias*/
+    .fc-daygrid-day:hover {
+      background-color: rgba(255, 174, 232, 0.936) !important;
+    }
+/*Diseño de los eventos agendados dentro del calendario*/
+    .fc-event {
+      border-radius: 8px !important;
+      border: none !important;
+      padding: 4px 8px !important;
+      font-weight: bold !important;
+      box-shadow: 0 2px 5px rgba(240, 152, 200, 0.911) !important;
+      transition: transform 0.3s ease !important;
+    }
+
+    .fc-event:hover {
+      transform: scale(1.05) !important;
+    }
+/*Color del recuadro del dia en el calendario*/
+    .fc-day-today {
+      background: linear-gradient(45deg, rgba(248, 188, 239, 0.942), rgba(255, 192, 203, 0.2)) !important;
+    }
+
+    @media (max-width: 768px) {
+      .header-calendario h2 {
+        font-size: 28px;
+      }
+      
+      #calendarioEventos {
+        margin: 20px;
+        padding: 20px;
+      }
+      
+      .fc-toolbar-title {
+        font-size: 20px !important;
+      }
+    }
+
+    /* Estilos responsivos para móviles */
+    @media (max-width: 768px) {
+      .calendar-container {
+        padding: 15px;
+        margin: 10px;
+      }
+      
+      .fc-header-toolbar {
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+      
+      .fc-toolbar-title {
+        font-size: 18px;
+        text-align: center;
+      }
+      
+      .fc-button {
+        padding: 8px 12px;
+        font-size: 14px;
+        margin: 2px;
+      }
+      
+      .fc-daygrid-day {
+        min-height: 60px;
+      }
+      
+      .fc-daygrid-day-number {
+        font-size: 14px;
+      }
+      
+      .fc-event {
+        font-size: 12px;
+        padding: 2px 4px;
+      }
+      
+      .boton-regresar {
+        padding: 10px 15px;
+        font-size: 14px;
+        margin: 10px;
+      }
+      
+      h1 {
+        font-size: 24px;
+        padding: 15px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .calendar-container {
+        padding: 10px;
+        margin: 5px;
+      }
+      
+      .fc-toolbar-title {
+        font-size: 16px;
+      }
+      
+      .fc-button {
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+      
+      .fc-daygrid-day {
+        min-height: 50px;
+      }
+      
+      .fc-daygrid-day-number {
+        font-size: 12px;
+      }
+      
+      .fc-event {
+        font-size: 10px;
+        padding: 1px 3px;
+      }
+      
+      h1 {
+        font-size: 20px;
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header-calendario">
+    <h2>📅 Calendario de Eventos Agendados</h2>
+    <p>Visualiza todos los eventos que tienes programados </p>
+    <a href="admin.html" class="boton-regresar">⬅️ Regresar a Panel de Administrador</a>
+  </header>
+
+  <div id="calendarioEventos"></div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <script>
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyD6NB2f4icoKBA7VV8KEd-oJLdV7EjdMzA",
+      authDomain: "pinki-dinkis.firebaseapp.com",
+      projectId: "pinki-dinkis",
+      storageBucket: "pinki-dinkis.appspot.com",
+      messagingSenderId: "761142113629",
+      appId: "1:761142113629:web:4b830798bd55d1fef6e4b4",
+      measurementId: "G-KEMSRF6K52",
+      databaseURL: "https://pinki-dinkis-default-rtdb.firebaseio.com"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Colores por tipo de servicio
+    const coloresPorTipo = {
+      "animador@ infantil": '#ff7f50',
+      "pinta caritas": '#9370DB',
+      "bely y beto": '#f4c542',
+      "show de spiderman": '#00bfff',
+      "personajes": '#ff69b4',
+      "inflables": '#32cd32',
+      "arma tu paquete": '#ff6347',
+      "otro": '#d3d3d3'
+    };
+
+    function inicializarCalendario(eventos) {
+      const calendarEl = document.getElementById('calendarioEventos');
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,listWeek'
+        },
+        locale: 'es',
+        events: eventos,
+        eventClick: function(info) {
+          const { municipio, tipo, persona, telefono1, hora, tematica, festejados } = info.event.extendedProps;
+          const mensaje = `
+🎉 Evento: ${info.event.title}
+🗓️ Fecha: ${info.event.startStr}
+👤 Cliente: ${persona || 'No especificado'}
+📞 Teléfono: ${telefono1 || 'No especificado'}
+🎭 Tipo: ${tipo || 'Otro'}
+📍 Municipio: ${municipio || 'No especificado'}
+⏰ Hora: ${hora || 'No especificada'}
+🎨 Temática: ${tematica || 'No especificada'}
+🎂 Festejado(s): ${festejados || 'No especificado'}
+          `;
+          alert(mensaje);
+        },
+        eventDidMount: function(info) {
+          // Agregar tooltip personalizado
+          info.el.title = `${info.event.title}\n${info.event.extendedProps.persona || 'Cliente no especificado'}`;
+        }
+      });
+      calendar.render();
+    }
+
+    db.ref("eventosAgendados").once("value").then(snapshot => {
+      const eventos = [];
+      snapshot.forEach(child => {
+        const data = child.val();
+        const tipo = (data.tipo || 'otro').toLowerCase();
+        const persona = data.persona || 'Cliente no especificado';
+
+        eventos.push({
+          title: `${persona} - ${tipo}`,
+          start: data.fecha,
+          backgroundColor: coloresPorTipo[tipo] || coloresPorTipo['otro'],
+          borderColor: coloresPorTipo[tipo] || coloresPorTipo['otro'],
+          extendedProps: {
+            municipio: data.municipio,
+            tipo: tipo,
+            persona: persona,
+            telefono1: data.telefono1,
+            hora: data.hora,
+            tematica: data.tematica,
+            festejados: data.festejados
+          }
+        });
+      });
+
+      inicializarCalendario(eventos);
+    });
+  </script>
+</body>
+</html>

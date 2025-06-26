@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel de Administración</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: linear-gradient(135deg, #fbbcfa 0%, #faf895 25%, #c1eaff 50%, #b1e5ff 75%, #f790ef 100%);
+      min-height: 100vh;
+    }
+
+    h1, h2 {
+      color: #ff69b4;
+      text-align: center;
+    }
+
+    .admin-section {
+      background: linear-gradient(135deg, #cbf8df 0%, #a7edfc 25%, #f8d5fe 50%, #f385e8 75%, #f6e07e 100%);
+      margin: 25px 0;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgb(105, 215, 243);
+      border: 2px solid transparent;
+      background-clip: padding-box;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .admin-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, rgb(1, 10, 16), rgba(255, 182, 193, 0.03), rgba(255, 192, 203, 0.03));
+      border-radius: 20px;
+      z-index: -1;
+    }
+
+    .admin-section h2 {
+      background: linear-gradient(45deg, #e82abc, #fff185, #ffb6c1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 26px;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(235, 64, 164, 0.933);
+    }
+
+    .evento {
+      border: 2px solid #7bcfff;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #cbf8df 0%, #a7edfc 25%, #f8d5fe 50%, #f385e8 75%, #f6e07e 100%);
+      position: relative;
+      box-shadow: 0 4px 10px rgba(117, 209, 251, 0.95);
+    }
+
+    .evento img {
+      width: 100px;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+
+    .btn-borrar {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .boton-regresar {
+      display: inline-block;
+      margin: 20px auto;
+      background: linear-gradient(45deg, #ff69b4, #ffc0cb);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      box-shadow: 0 4px 10px rgba(117, 209, 251, 0.95);
+      transition: transform 0.3s ease, background 0.3s ease;
+    }
+
+    .boton-regresar:hover {
+      background: linear-gradient(45deg, #ff85c1, #ffd1e8);
+      transform: scale(1.05);
+    }
+
+    /* Estilos para gestión de productos */
+    .producto-item {
+      background: linear-gradient(135deg, #faf5c3 0%, #fedbc2 25%, #fdcbe4 50%, #eacdff 75%, #afdcfc 100%);
+      border: 3px solid transparent;
+      background-clip: padding-box;
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 20px;
+      position: relative;
+      box-shadow: 0 8px 25px rgba(72, 164, 230, 0.938);
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+
+    .producto-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, rgba(255, 105, 180, 0.05), rgba(255, 182, 193, 0.05), rgba(255, 192, 203, 0.05));
+      border-radius: 20px;
+      z-index: -1;
+    }
+
+    .producto-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(255, 105, 180, 0.25);
+      border: 3px solid rgba(255, 105, 180, 0.3);
+    }
+
+    .producto-item h3 {
+      background: linear-gradient(45deg, #ff69b4, #ff85c1, #ffb6c1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0 0 15px 0;
+      font-size: 22px;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(255, 105, 180, 0.1);
+    }
+
+    .producto-imagen {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 15px;
+      margin: 15px 0;
+      box-shadow: 0 6px 20px rgba(255, 105, 180, 0.2);
+      border: 3px solid rgba(255, 105, 180, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .producto-imagen:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 25px rgba(255, 105, 180, 0.3);
+    }
+
+    .precio-item {
+      display: inline-block;
+      margin: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .precio-item img {
+      width: 90px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 3px solid rgba(255, 105, 180, 0.3);
+      box-shadow: 0 4px 15px rgba(255, 105, 180, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .precio-item img:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(255, 105, 180, 0.4);
+      border-color: #ff69b4;
+    }
+
+    .btn-accion {
+      background: linear-gradient(45deg, #ff69b4, #ff85c1, #ffb6c1);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 25px;
+      cursor: pointer;
+      margin: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(255, 105, 180, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-accion::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn-accion:hover::before {
+      left: 100%;
+    }
+
+    .btn-accion:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 8px 25px rgba(255, 105, 180, 0.4);
+      background: linear-gradient(45deg, #ff85c1, #ffb6c1, #ffc0cb);
+    }
+
+    .btn-eliminar {
+      background: linear-gradient(45deg, #dc3545, #e74c3c, #ff6b6b);
+    }
+
+    .btn-eliminar:hover {
+      background: linear-gradient(45deg, #e74c3c, #ff6b6b, #ff8e8e);
+    }
+
+    .btn-editar {
+      background: linear-gradient(45deg, #28a745, #2ecc71, #4CAF50);
+    }
+
+    .btn-editar:hover {
+      background: linear-gradient(45deg, #2ecc71, #4CAF50, #66BB6A);
+    }
+
+    .btn-agregar-precio {
+      background: linear-gradient(45deg, #17a2b8, #20c997, #00bcd4);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      margin: 8px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
+    }
+
+    .btn-agregar-precio:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(23, 162, 184, 0.4);
+      background: linear-gradient(45deg, #20c997, #00bcd4, #26c6da);
+    }
+
+    .formulario-producto {
+      background: linear-gradient(135deg, #ffe6f0 0%, #fff0f5 25%, #ffeef2 50%, #fff5f8 75%, #fffafc 100%);
+      padding: 30px;
+      border-radius: 20px;
+      margin: 20px 0;
+      box-shadow: 0 10px 30px rgba(255, 105, 180, 0.3);
+      border: 3px solid transparent;
+      background-clip: padding-box;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .formulario-producto::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, rgba(255, 105, 180, 0.1), rgba(255, 182, 193, 0.1), rgba(255, 192, 203, 0.1));
+      border-radius: 20px;
+      z-index: -1;
+    }
+
+    .formulario-producto h2 {
+      background: linear-gradient(45deg, #ff69b4, #ff85c1, #ffb6c1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+      margin-bottom: 25px;
+      font-size: 28px;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(255, 105, 180, 0.2);
+    }
+
+    .formulario-producto input,
+    .formulario-producto textarea {
+      width: 100%;
+      padding: 15px;
+      margin: 8px 0;
+      border: 2px solid transparent;
+      border-radius: 15px;
+      box-sizing: border-box;
+      background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%);
+      box-shadow: 0 4px 15px rgba(255, 105, 180, 0.1);
+      transition: all 0.3s ease;
+      font-size: 16px;
+    }
+
+    .formulario-producto input:focus,
+    .formulario-producto textarea:focus {
+      outline: none;
+      border: 2px solid #ff69b4;
+      box-shadow: 0 0 20px rgba(255, 105, 180, 0.3);
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, #ffffff 0%, #fff5f8 100%);
+    }
+
+    .formulario-producto label {
+      display: block;
+      margin: 15px 0 5px 0;
+      color: #d63384;
+      font-weight: bold;
+      font-size: 16px;
+      text-shadow: 1px 1px 2px rgba(255, 105, 180, 0.1);
+    }
+
+    .precio-input {
+      display: flex;
+      align-items: center;
+      margin: 5px 0;
+    }
+
+    .precio-input input {
+      flex: 1;
+      margin-right: 10px;
+    }
+
+    .btn-remover-precio {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      width: 30px;
+      height: 30px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+      background: linear-gradient(135deg, rgba(255, 105, 180, 0.1), rgba(255, 182, 193, 0.1));
+      padding: 15px;
+      border-radius: 25px;
+      box-shadow: 0 5px 20px rgba(255, 105, 180, 0.1);
+    }
+
+    .nav-tab {
+      background: linear-gradient(45deg, #ff69b4, #ff85c1, #ffb6c1);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      margin: 0 8px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(255, 105, 180, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-tab::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .nav-tab:hover::before {
+      left: 100%;
+    }
+
+    .nav-tab:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 8px 25px rgba(255, 105, 180, 0.4);
+      background: linear-gradient(45deg, #ff85c1, #ffb6c1, #ffc0cb);
+    }
+
+    .nav-tab.active {
+      background: linear-gradient(45deg, #d63384, #e91e63, #ff69b4);
+      box-shadow: 0 8px 25px rgba(255, 105, 180, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Estilos responsivos para móviles */
+    @media (max-width: 768px) {
+      .nav-tabs {
+        flex-direction: column;
+        gap: 5px;
+        padding: 10px;
+      }
+      
+      .nav-tab {
+        padding: 12px 15px;
+        font-size: 14px;
+        width: 100%;
+        text-align: center;
+      }
+      
+      .evento {
+        padding: 12px;
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
+      
+      .producto-item {
+        padding: 15px;
+        margin: 10px 0;
+      }
+      
+      .producto-item h3 {
+        font-size: 18px;
+      }
+      
+      .producto-imagen {
+        width: 80px;
+        height: 80px;
+      }
+      
+      .precio-item img {
+        width: 60px;
+        height: 60px;
+      }
+      
+      .formulario-producto {
+        padding: 20px 15px;
+        margin: 15px 0;
+      }
+      
+      .formulario-producto h2 {
+        font-size: 20px;
+      }
+      
+      .formulario-producto input,
+      .formulario-producto textarea {
+        padding: 12px;
+        font-size: 16px;
+      }
+      
+      .btn-accion {
+        padding: 10px 15px;
+        font-size: 14px;
+        margin: 5px;
+        width: 100%;
+        max-width: 200px;
+      }
+      
+      #panel-galeria {
+        padding: 20px 15px;
+        margin: 20px 15px;
+      }
+      
+      .boton-regresar {
+        padding: 10px 15px;
+        font-size: 14px;
+        margin: 10px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .nav-tab {
+        padding: 10px 12px;
+        font-size: 13px;
+      }
+      
+      .evento {
+        padding: 10px;
+        font-size: 13px;
+      }
+      
+      .producto-item h3 {
+        font-size: 16px;
+      }
+      
+      .formulario-producto h2 {
+        font-size: 18px;
+      }
+      
+      .btn-accion {
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="admin-panel">
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="mostrarTab('eventos')">📅 Eventos</button>
+      <button class="nav-tab" onclick="mostrarTab('productos')">🛒 Productos</button>
+      <button class="nav-tab" onclick="mostrarTab('galeria')">🖼️ Editar Galería</button>
+    </div>
+
+    <!-- Tab de Eventos -->
+    <div id="tab-eventos" class="tab-content active">
+      <button onclick="window.open('calendario.html', '_blank')" style="
+        background-color: #ff69b4;
+        color: white;
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-bottom: 20px;
+      ">📅 Ver Calendario</button>
+
+      <a href="index.html" class="boton-regresar">⬅️ Regresar</a>
+
+      <h1>Eventos Agendados</h1>
+      <div id="lista-admin">Cargando eventos...</div>
+    </div>
+
+    <!-- Tab de Productos -->
+    <div id="tab-productos" class="tab-content">
+      <a href="index.html" class="boton-regresar">⬅️ Regresar</a>
+
+      <h1>Gestión de Productos</h1>
+      
+      <!-- Formulario para agregar/editar producto -->
+      <div class="formulario-producto">
+        <h2 id="form-titulo">➕ Agregar Nuevo Producto</h2>
+        <form id="form-producto">
+          <input type="hidden" id="producto-id" value="">
+          <label>Nombre del Producto:</label>
+          <input type="text" id="producto-nombre" required placeholder="Ej: ANIMADOR@ INFANTIL">
+          
+          <label>URL de la imagen principal:</label>
+          <input type="url" id="producto-imagen" required placeholder="https://ejemplo.com/imagen.jpg">
+          
+          <label>Imágenes de precios (una por línea):</label>
+          <textarea id="producto-precios" rows="5" placeholder="https://ejemplo.com/precio1.jpg&#10;https://ejemplo.com/precio2.jpg&#10;https://ejemplo.com/precio3.jpg"></textarea>
+          
+          <button type="submit" class="btn-accion">💾 Guardar Producto</button>
+          <button type="button" class="btn-accion" onclick="limpiarFormulario()">🔄 Nuevo Producto</button>
+        </form>
+      </div>
+
+      <!-- Lista de productos -->
+      <div class="admin-section">
+        <h2>📋 Productos Actuales</h2>
+        <button class="btn-accion" onclick="inicializarProductosPorDefecto()" style="
+          margin-bottom: 20px; 
+          background: linear-gradient(45deg, #ff6b35, #f7931e, #ffd23f);
+          font-size: 18px;
+          padding: 15px 30px;
+          border-radius: 30px;
+          box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+          position: relative;
+          overflow: hidden;
+        ">
+          🚀 Inicializar Productos por Defecto
+        </button>
+        <div id="lista-productos">Cargando productos...</div>
+      </div>
+    </div>
+
+    <!-- Tab de Galería -->
+    <div id="tab-galeria" class="tab-content" style="display:none;">
+      <section id="panel-galeria" style="margin:40px auto;max-width:900px;background:#fff0f5;border-radius:18px;padding:32px 24px 24px 24px;box-shadow:0 8px 32px rgba(255,105,180,0.12);">
+        <h2 style="color:#ff69b4;text-align:center;margin-bottom:18px;">🖼️ Editar Galería</h2>
+        <div id="galeria-admin"></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    // Configuración Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyD6NB2f4icoKBA7VV8KEd-oJLdV7EjdMzA",
+      authDomain: "pinki-dinkis.firebaseapp.com",
+      projectId: "pinki-dinkis",
+      storageBucket: "pinki-dinkis.appspot.com",
+      messagingSenderId: "761142113629",
+      appId: "1:761142113629:web:4b830798bd55d1fef6e4b4",
+      measurementId: "G-KEMSRF6K52",
+      databaseURL: "https://pinki-dinkis-default-rtdb.firebaseio.com"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Navegación entre tabs
+    function mostrarTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+        tab.style.display = 'none';
+      });
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+      document.getElementById(`tab-${tabName}`).style.display = '';
+      event.target.classList.add('active');
+      if (tabName === 'eventos') {
+        mostrarEventosAdmin();
+      } else if (tabName === 'productos') {
+        cargarProductos();
+      } else if (tabName === 'galeria') {
+        renderGaleriaAdmin();
+      }
+    }
+
+    // Mostrar eventos en lista
+    function mostrarEventosAdmin() {
+      const cont = document.getElementById('lista-admin');
+      database.ref('eventosAgendados').once('value').then(snapshot => {
+        const data = snapshot.val();
+        cont.innerHTML = '';
+        if (!data) return cont.innerHTML = '<p>No hay eventos.</p>';
+
+        Object.entries(data).forEach(([id, ev], i) => {
+          const div = document.createElement('div');
+          div.className = 'evento';
+          div.innerHTML = `
+            <button class="btn-borrar" onclick="borrarReserva('${id}')">🗑️</button>
+            <strong>Evento ${i + 1}</strong><br>
+            Persona: ${ev.persona}<br>
+            Teléfono 1: ${ev.telefono1}<br>
+            Teléfono 2: ${ev.telefono2 || '-'}<br>
+            Fecha: ${ev.fecha || '-'}<br>
+            Hora: ${ev.hora || '-'}<br>
+            Tipo: ${ev.tipo || '-'}<br>
+            Temática: ${ev.tematica || '-'}<br>
+            Festejado(s): ${ev.festejados || '-'} (${ev.genero || '-'})<br>
+            Dirección: ${ev.direccion || '-'}<br>
+            Especificaciones: ${ev.especificaciones || 'Ninguna'}<br>
+            Ubicación: ${ev.ubicacion ? `<a href="${ev.ubicacion}" target="_blank">📍 Ver en mapa</a>` : '-'}<br>
+            Imagen: ${ev.imagenSeleccionada ? `<br><img src="${ev.imagenSeleccionada}" width="100">` : ''}
+          `;
+          cont.appendChild(div);
+        });
+      });
+    }
+
+    // Borrar evento
+    function borrarReserva(id) {
+      if (confirm("¿Seguro que quieres borrar este evento?")) {
+        firebase.database().ref("eventosAgendados").child(id).remove()
+          .then(() => {
+            alert("Evento eliminado.");
+            mostrarEventosAdmin();
+            cargarEventosCalendario();
+          })
+          .catch(err => alert("Error al eliminar: " + err.message));
+      }
+    }
+
+    // Cargar productos
+    function cargarProductos() {
+      const cont = document.getElementById('lista-productos');
+      database.ref('productos').once('value').then(snapshot => {
+        const data = snapshot.val();
+        cont.innerHTML = '';
+        
+        if (!data) {
+          cont.innerHTML = '<p>No hay productos registrados.</p>';
+          return;
+        }
+
+        Object.entries(data).forEach(([id, producto]) => {
+          const div = document.createElement('div');
+          div.className = 'producto-item';
+          div.innerHTML = `
+            <h3>${producto.nombre}</h3>
+            <img src="${producto.imagen}" alt="${producto.nombre}" class="producto-imagen">
+            <div>
+              <strong>Imágenes de precios:</strong><br>
+              ${producto.precios ? producto.precios.map(precio => 
+                `<div class="precio-item"><img src="${precio}" alt="Precio"></div>`
+              ).join('') : 'Sin precios'}
+            </div>
+            <button class="btn-accion btn-editar" onclick="editarProducto('${id}', '${producto.nombre}', '${producto.imagen}', ${JSON.stringify(producto.precios || []).replace(/"/g, '&quot;')})">
+              ✏️ Editar
+            </button>
+            <button class="btn-accion btn-eliminar" onclick="eliminarProducto('${id}')">
+              🗑️ Eliminar
+            </button>
+          `;
+          cont.appendChild(div);
+        });
+      });
+    }
+
+    // Editar producto
+    function editarProducto(id, nombre, imagen, precios) {
+      document.getElementById('producto-id').value = id;
+      document.getElementById('producto-nombre').value = nombre;
+      document.getElementById('producto-imagen').value = imagen;
+      document.getElementById('producto-precios').value = precios.join('\n');
+      document.getElementById('form-titulo').textContent = '✏️ Editar Producto';
+      
+      // Scroll al formulario
+      document.querySelector('.formulario-producto').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Eliminar producto
+    function eliminarProducto(id) {
+      if (confirm("¿Seguro que quieres eliminar este producto?")) {
+        database.ref(`productos/${id}`).remove()
+          .then(() => {
+            alert("Producto eliminado correctamente.");
+            cargarProductos();
+          })
+          .catch(err => alert("Error al eliminar: " + err.message));
+      }
+    }
+
+    // Limpiar formulario
+    function limpiarFormulario() {
+      document.getElementById('form-producto').reset();
+      document.getElementById('producto-id').value = '';
+      document.getElementById('form-titulo').textContent = '➕ Agregar Nuevo Producto';
+    }
+
+    // Inicializar productos por defecto
+    function inicializarProductosPorDefecto() {
+      if (confirm("¿Estás seguro de que quieres inicializar los productos por defecto? Esto sobrescribirá cualquier producto existente.")) {
+        const productosPorDefecto = [
+          {
+            nombre: "ANIMADOR@ INFANTIL",
+            imagen: "https://i.imgur.com/5pc5QzK.jpeg",
+            precios: [
+              "https://i.imgur.com/CTfmji2.jpeg",
+              "https://i.imgur.com/yFosOMa.jpeg",
+              "https://i.imgur.com/I2goapV.jpeg",
+              "https://i.imgur.com/kneT7uz.jpeg"
+            ]
+          },
+          {
+            nombre: "PINTA CARITAS",
+            imagen: "https://i.imgur.com/VFUwbCP.jpeg",
+            precios: [
+              "https://i.imgur.com/g0YRYPn.jpeg",
+              "https://i.imgur.com/HLlKDkf.jpeg",
+              "https://i.imgur.com/Cl4a3Iq.jpeg"
+            ]
+          },
+          {
+            nombre: "BELY Y BETO",
+            imagen: "https://i.imgur.com/MxyqdNM.jpeg",
+            precios: [
+              "https://i.imgur.com/kCx4Bzv.jpeg",
+              "https://i.imgur.com/4mJ9V28.jpeg",
+              "https://i.imgur.com/YYd6I3h.jpeg"
+            ]
+          },
+          {
+            nombre: "SHOW DE SPIDERMAN",
+            imagen: "https://i.imgur.com/Zrr9ok2.jpeg",
+            precios: [
+              "https://via.placeholder.com/150/FFD700?text=Personaje1",
+              "https://via.placeholder.com/150/FFD700?text=Personaje2",
+              "https://via.placeholder.com/150/FFD700?text=Personaje3",
+              "https://via.placeholder.com/150/FFD700?text=Personaje4",
+              "https://via.placeholder.com/150/FFD700?text=Personaje5"
+            ]
+          },
+          {
+            nombre: "PERSONAJES",
+            imagen: "https://i.imgur.com/5pc5QzK.jpeg",
+            precios: [
+              "https://i.imgur.com/CTfmji2.jpeg",
+              "https://i.imgur.com/yFosOMa.jpeg",
+              "https://i.imgur.com/I2goapV.jpeg",
+              "https://i.imgur.com/kneT7uz.jpeg"
+            ]
+          },
+          {
+            nombre: "INFLABLES",
+            imagen: "https://i.imgur.com/5pc5QzK.jpeg",
+            precios: [
+              "https://i.imgur.com/CTfmji2.jpeg",
+              "https://i.imgur.com/yFosOMa.jpeg",
+              "https://i.imgur.com/I2goapV.jpeg",
+              "https://i.imgur.com/kneT7uz.jpeg"
+            ]
+          },
+          {
+            nombre: "ARMA TU PAQUETE",
+            imagen: "https://i.imgur.com/5pc5QzK.jpeg",
+            precios: [
+              "https://i.imgur.com/CTfmji2.jpeg",
+              "https://i.imgur.com/yFosOMa.jpeg",
+              "https://i.imgur.com/I2goapV.jpeg",
+              "https://i.imgur.com/kneT7uz.jpeg"
+            ]
+          }
+        ];
+
+        // Guardar productos por defecto en Firebase
+        database.ref('productos').set(productosPorDefecto)
+          .then(() => {
+            alert("✅ Productos por defecto inicializados correctamente.");
+            cargarProductos();
+          })
+          .catch(err => alert("Error al inicializar: " + err.message));
+      }
+    }
+
+    // Manejar formulario de producto
+    document.getElementById('form-producto').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const id = document.getElementById('producto-id').value;
+      const nombre = document.getElementById('producto-nombre').value;
+      const imagen = document.getElementById('producto-imagen').value;
+      const preciosTexto = document.getElementById('producto-precios').value;
+      const precios = preciosTexto.split('\n').filter(url => url.trim() !== '');
+
+      const producto = {
+        nombre: nombre,
+        imagen: imagen,
+        precios: precios
+      };
+
+      let ref;
+      if (id) {
+        // Actualizar producto existente
+        ref = database.ref(`productos/${id}`);
+      } else {
+        // Crear nuevo producto
+        ref = database.ref('productos').push();
+      }
+
+      ref.set(producto)
+        .then(() => {
+          alert(id ? "Producto actualizado correctamente." : "Producto agregado correctamente.");
+          limpiarFormulario();
+          cargarProductos();
+        })
+        .catch(err => alert("Error al guardar: " + err.message));
+    });
+
+    // Inicializar calendario
+    function inicializarCalendario(eventos) {
+      const calendarEl = document.getElementById('calendarioEventos');
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,listWeek'
+        },
+        locale: 'es',
+        events: eventos,
+        eventClick: function(info) {
+          const detalle = info.event.extendedProps;
+          alert(
+            '📌 Evento: ' + info.event.title + '\n' +
+            '📅 Fecha: ' + info.event.startStr + '\n' +
+            '📍 Municipio: ' + (detalle.municipio || 'No especificado')
+          );
+        }
+      });
+      calendar.render();
+    }
+
+    // Cargar eventos del calendario
+    function cargarEventosCalendario() {
+      database.ref("eventosAgendados").once("value").then(snapshot => {
+        const eventos = [];
+        snapshot.forEach(child => {
+          const data = child.val();
+          eventos.push({
+            title: data.persona || "Evento",
+            start: data.fecha,
+            extendedProps: {
+              municipio: data.municipio
+            }
+          });
+        });
+        inicializarCalendario(eventos);
+      });
+    }
+
+    // Ejecutar al cargar la página
+    window.onload = () => {
+      mostrarEventosAdmin();
+      cargarEventosCalendario();
+    };
+
+    // Categorías de la galería
+    const categoriasGaleria = [
+      { key: 'animadores', nombre: 'Animadores Infantiles' },
+      { key: 'pintacaritas', nombre: 'Pinta Caritas' },
+      { key: 'belyybeto', nombre: 'Bely y Beto' },
+      { key: 'spiderman', nombre: 'Show de Spiderman' },
+      { key: 'personajes', nombre: 'Personajes' },
+      { key: 'inflables', nombre: 'Inflables' }
+    ];
+
+    // Datos iniciales (puedes cambiarlos por los de tu galería real)
+    const galeriaDefault = {
+      animadores: [
+        'https://i.imgur.com/5pc5QzK.jpeg',
+        'https://i.imgur.com/CTfmji2.jpeg',
+        'https://i.imgur.com/yFosOMa.jpeg',
+        'https://i.imgur.com/I2goapV.jpeg'
+      ],
+      pintacaritas: [
+        'https://i.imgur.com/VFUwbCP.jpeg',
+        'https://i.imgur.com/g0YRYPn.jpeg',
+        'https://i.imgur.com/HLlKDkf.jpeg',
+        'https://i.imgur.com/Cl4a3Iq.jpeg'
+      ],
+      belyybeto: [
+        'https://i.imgur.com/MxyqdNM.jpeg',
+        'https://i.imgur.com/kCx4Bzv.jpeg',
+        'https://i.imgur.com/4mJ9V28.jpeg',
+        'https://i.imgur.com/YYd6I3h.jpeg'
+      ],
+      spiderman: [
+        'https://i.imgur.com/Zrr9ok2.jpeg',
+        'https://i.imgur.com/5pc5QzK.jpeg',
+        'https://i.imgur.com/CTfmji2.jpeg',
+        'https://i.imgur.com/yFosOMa.jpeg'
+      ],
+      personajes: [
+        'https://i.imgur.com/5pc5QzK.jpeg',
+        'https://i.imgur.com/CTfmji2.jpeg',
+        'https://i.imgur.com/yFosOMa.jpeg',
+        'https://i.imgur.com/I2goapV.jpeg'
+      ],
+      inflables: [
+        'https://i.imgur.com/5pc5QzK.jpeg',
+        'https://i.imgur.com/CTfmji2.jpeg',
+        'https://i.imgur.com/yFosOMa.jpeg',
+        'https://i.imgur.com/I2goapV.jpeg'
+      ]
+    };
+
+    // Cargar galería desde localStorage o usar default
+    function cargarGaleriaAdmin() {
+      const data = localStorage.getItem('galeriaAdmin');
+      return data ? JSON.parse(data) : JSON.parse(JSON.stringify(galeriaDefault));
+    }
+    function guardarGaleriaAdmin(galeria) {
+      localStorage.setItem('galeriaAdmin', JSON.stringify(galeria));
+    }
+
+    function renderGaleriaAdmin() {
+      const galeria = cargarGaleriaAdmin();
+      const cont = document.getElementById('galeria-admin');
+      cont.innerHTML = '';
+      categoriasGaleria.forEach(cat => {
+        const div = document.createElement('div');
+        div.style.marginBottom = '32px';
+        div.innerHTML = `<h3 style='color:#d63384;'>${cat.nombre}</h3>`;
+        // Galería de imágenes
+        const galDiv = document.createElement('div');
+        galDiv.style.display = 'flex';
+        galDiv.style.flexWrap = 'wrap';
+        galDiv.style.gap = '16px';
+        galeria[cat.key].forEach((url, idx) => {
+          const imgBox = document.createElement('div');
+          imgBox.style.position = 'relative';
+          imgBox.style.display = 'inline-block';
+          imgBox.innerHTML = `
+            <img src='${url}' style='width:100px;height:100px;object-fit:cover;border-radius:10px;box-shadow:0 2px 8px #ffb6c1;'>
+            <button style='position:absolute;top:2px;right:2px;background:#ff69b4;color:white;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:bold;' title='Eliminar'>&times;</button>
+          `;
+          imgBox.querySelector('button').onclick = () => {
+            galeria[cat.key].splice(idx, 1);
+            guardarGaleriaAdmin(galeria);
+            renderGaleriaAdmin();
+          };
+          galDiv.appendChild(imgBox);
+        });
+        div.appendChild(galDiv);
+        // Formulario para agregar imagen
+        const form = document.createElement('form');
+        form.style.marginTop = '10px';
+        form.innerHTML = `
+          <input type='url' placeholder='URL de la imagen' required style='padding:6px 10px;border-radius:8px;border:1px solid #ffb6c1;width:220px;'>
+          <button type='submit' style='background:#ff69b4;color:white;border:none;padding:7px 18px;border-radius:8px;font-weight:bold;margin-left:8px;cursor:pointer;'>Agregar</button>
+        `;
+        form.onsubmit = e => {
+          e.preventDefault();
+          const url = form.querySelector('input').value.trim();
+          if (url) {
+            galeria[cat.key].push(url);
+            guardarGaleriaAdmin(galeria);
+            renderGaleriaAdmin();
+            form.reset();
+          }
+        };
+        div.appendChild(form);
+        cont.appendChild(div);
+      });
+    }
+    renderGaleriaAdmin();
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Loader inicial para el tab activo
+      const tabActivo = document.querySelector('.tab-content.active');
+      if (tabActivo) {
+        tabActivo.innerHTML += '<div id="loader-admin-tab" style="text-align:center;margin:20px;">Cargando...</div>';
+        setTimeout(() => {
+          const loader = document.getElementById('loader-admin-tab');
+          if (loader) loader.remove();
+        }, 800);
+      }
+    });
+  </script>
+</body>
+</html>

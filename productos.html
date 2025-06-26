@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Productos - Pinki Dinkis</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+</head>
+
+<script>
+  
+  let tipoSeleccionado = '';
+  function verPrecio(tipo) {
+    tipoSeleccionado = tipo;
+
+    // Aquí puedes mostrar tu formulario flotante o modal
+    document.getElementById('formularioPrecio').style.display = 'block';
+  }
+
+  function enviarFormulario() {
+    const municipio = document.getElementById('inputMunicipio').value;
+    const fecha = document.getElementById('inputFecha').value;
+
+    if (!municipio || !fecha || !tipoSeleccionado) {
+      alert("Por favor completa todos los campos.");
+      return;
+    }
+
+    const nuevoEvento = {
+      Nombre : "Cliente interesado", // Puedes cambiarlo si hay login o input nombre
+      municipio: municipio,
+      fecha: fecha,
+      tipo: tipoSeleccionado
+    };
+
+    // Guardar en Firebase
+    firebase.database().ref("eventosAgendados").push(nuevoEvento)
+      .then(() => {
+        alert("✅ ¡Evento agendado con éxito!");
+        tipoSeleccionado = ''; // Reiniciar tipo
+        document.getElementById('formularioPrecio').style.display = 'none';
+      })
+      .catch(error => {
+        alert("❌ Error al guardar el evento: " + error.message);
+      });
+  }
+</script>
+
+<body>
+  <!-- Logo -->
+  <img src="https://i.imgur.com/FHnclCJ.png" alt="Logo Pinki" id="logo-flotante" style="
+    position: fixed;
+    top: 20px;
+    left: 90%;
+    width: 100px;
+    height: 100px;
+    z-index: 1000;
+    box-shadow: 0 0 10px rgb(71, 189, 228);
+  ">
+
+  <header>
+    <h1 class="logo">🎀 Servicios Pinki Dinkis 🎀</h1>
+    <button class="btn-ver-evento" onclick="window.location.href='index.html'" style="margin-top: 20px;">
+      Regresar 
+    </button>
+  </header>
+
+  <section id="productos" class="productos">
+    <h3>✨ Los servicios mas entretenidos para tus fiestas infantiles ✨</h3>
+    <div class="product-grid" id="grid-productos"></div>
+  </section>
+
+  <!-- Formulario para municipio y fecha -->
+  <div id="formulario-precio" class="formulario-popup" style="display:none;">
+    <h3>Consulta de precios</h3>
+    <p style="text-align: center; color: #666; margin-bottom: 20px; font-size: 14px;">
+      📋 Completa los datos para ver todos nuestros precios 
+    </p>
+    <form id="formulario-datos">
+      <label>Municipio:<br>
+        <select id="municipio" required>
+          <option value="">Selecciona un municipio</option>
+          <optgroup label="Estado de México">
+            <option>Chalco</option>
+            <option>Chicoloapan</option>
+            <option>Chimalhuacán</option>
+            <option>Coantlinchan</option>
+            <option>Iztapaluca</option>
+            <option>La Paz</option>
+            <option>Los Reyes</option>
+            <option>Nezahualcóyotl</option>
+            <option>Texcoco</option>
+          </optgroup>
+          <optgroup label="Ciudad de México">
+            <option>Iztapalapa</option>
+            <option>Santa Martha</option>
+          </optgroup>
+        </select>
+      </label><br><br>
+      <label>Fecha del evento:<br>
+        <input type="date" id="fecha" required min="" placeholder="Ej: 15/12/2024">
+        <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+          📅 Formato: DD/MM/AAAA (Ej: 15/12/2024 para el 15 de diciembre de 2024)
+        </small>
+      </label><br><br>
+      <button type="submit">Ver precios</button>
+    </form>
+  </div>
+
+  <!-- Galería de precios -->
+  <div id="galeria-precios" class="galeria" style="display:none;">
+    <h3>Opciones disponibles:</h3>
+    <div class="imagenes"></div>
+  </div>
+
+  <!-- Confirmación -->
+  <div id="confirmacion" class="confirmacion" style="display:none;">
+    <h3>¿Deseas agendar tu evento?</h3>
+    <button id="btn-si">Sí</button>
+    <button id="btn-no">No</button>
+  </div>
+
+  <!-- Mensaje no -->
+  <div id="mensaje-no" style="display:none; text-align:center; padding:20px;">
+    <p>🎈 Puedes seguir explorando nuestras opciones para hacer tu evento inolvidable. 🎈</p>
+  </div>
+
+  <!-- Mensaje final -->
+  <div id="mensaje-final" style="display:none; text-align:center; padding:30px; font-size:18px; background:#fff0f5; border-radius:15px;">
+    <p>🎊 ¡Gracias por confiar en Pinki Dinkis! Tu evento ha sido agendado con éxito. 🎊</p>
+  </div>
+
+  <!-- WhatsApp -->
+  <a href="https://wa.me/525633313462" target="_blank" class="whatsapp-float" title="¡Chatea con nosotros!" style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+  ">
+    <img src="https://cdn-icons-png.flaticon.com/512/220/220236.png" alt="WhatsApp" width="50">
+  </a>
+
+  <script src="script.js"></script>
+  <script>
+    // Bloquear fechas pasadas en fecha del evento
+    const fechaInput = document.getElementById('fecha');
+    const hoy = new Date().toISOString().split("T")[0];
+    if (fechaInput) fechaInput.min = hoy;
+  </script>
+
+  <script>
+  function obtenerUbicacion() {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        const mapsLink = `https://www.google.com/maps?q=${lat},${lon}`;
+        document.getElementById("ubicacion").value = mapsLink;
+        alert("Ubicación obtenida correctamente.");
+      }, function(error) {
+        alert("No se pudo obtener la ubicación.");
+      });
+    } else {
+      alert("Tu navegador no soporta geolocalización.");
+    }
+  }
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const grid = document.getElementById('grid-productos');
+  if (grid) {
+    grid.innerHTML = '<div id="loader-productos" style="text-align:center;margin:20px;">Cargando productos...</div>';
+    setTimeout(() => {
+      const loader = document.getElementById('loader-productos');
+      if (loader) loader.remove();
+    }, 800);
+  }
+});
+</script>
+
+</body>
+</html>
